@@ -1,0 +1,576 @@
+---
+title: "Project"
+author: "Artsem Dzemiantsevich"
+date: "2024-01-23"
+output:
+  html_document: default
+  pdf_document: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE, error = FALSE, warning = FALSE)
+```
+
+
+```{r}
+df1 <- read.csv("C:\\Users\\ASUS\\Downloads\\world.csv")
+df2 <- read.csv("C:\\Users\\ASUS\\Downloads\\big.csv")
+df3 <- read.csv("C:\\Users\\ASUS\\Downloads\\other.csv")
+df4 <- read.csv("C:\\Users\\ASUS\\Downloads\\human.csv")
+```
+
+
+<span style="font-size: 35px;">Spis treści</span>
+
+<span style="font-size: 25px;">1.</span><span style="font-size:25px;">[Wprowadzenie](#section1)</span>
+
+<span style="font-size: 25px;">2.</span><span style="font-size:25px;">[Cel](#section2)</span>
+
+<span style="font-size: 25px;">3.</span><span style="font-size:25px;">[Tablica](#section3)</span>
+
+<span style="font-size: 25px;">4.</span><span style="font-size:25px;">[Roczna produkcja plastiku](#section4)</span>
+
+<span style="font-size: 25px;">5.</span><span style="font-size:25px;">[Udział odpadów z swiatu](#section5)</span>
+
+<span style="font-size: 25px;">6.</span><span style="font-size:25px;">[Udział odpadów do oceanu(Swiat)](#section6)</span>
+
+<span style="font-size: 25px;">7.</span><span style="font-size:25px;">[Udział odpadów do oceanu(Kraj)](#section7)</span>
+
+<span style="font-size: 25px;">8.</span><span style="font-size:25px;">[Udział odpadów na mieszkańca](#section8)</span>
+
+<span style="font-size: 25px;">9.</span><span style="font-size:25px;">[Macierz](#section9)</span>
+
+<span style="font-size: 25px;">10.</span><span style="font-size:25px;">[Udział odpadów z swiatu roczne(3d)](#section10)</span>
+
+<span style="font-size: 25px;">11.</span><span style="font-size:25px;">[Podsumowanie](#section11)</span>
+
+<span style="font-size: 25px;">12.</span><span style="font-size:25px;">[Źródłó](#section12)</span>
+
+
+
+<a id="section1"></a><span style="font-size: 35px;">Wprowadzenie</span>
+
+W dzisiejszym świecie problem zanieczyszczenia plastikiem stał się jednym z najbardziej dotkliwych i pilnych. Nasza planeta jest poważnie zagrożona przez nadużywanie i niewystarczający recykling tworzyw sztucznych. Każdego roku miliony ton plastikowych odpadów trafiają do oceanów, powodując globalne zanieczyszczenie mórz i szkodząc morskiej faunie i florze. Kwestia ta wymaga pilnych i skutecznych rozwiązań na poziomie globalnym. Wprowadzenie do globalnego zanieczyszczenia tworzywami sztucznymi jest ważne, aby uwrażliwić społeczeństwo na pilność problemu i zachęcić do poszukiwania innowacyjnych podejść do zrównoważonego wykorzystania i recyklingu tworzyw sztucznych.
+
+
+<a id="section2"></a><span style="font-size: 35px;">Cel</span>
+
+Celem projektu jest pokazanie działania różnych wykresów i tabel. Pokazanie problemu związanego z zanieczyszczeniem planety plastikiem w podziale na kraje i kontynenty.
+
+
+<a id="section3"></a><span style="font-size: 35px;">Tablica</span>
+
+.<span style="font-size: 23px;">Pokażę pierwsze 15 danych dla przedstawienia pierwszego zbioru</span>
+```{r}
+head(df1, 15)
+```
+
+<span style="font-size: 23px;">Pokażę pierwsze 15 danych dla przedstawienia drugiego zbioru.</span>
+```{r}
+head(df2, 15)
+```
+
+<span style="font-size: 23px;">Pokażę pierwsze 15 danych dla przedstawienia trzeciego zbioru.</span>
+```{r}
+head(df3, 15)
+```
+
+<span style="font-size: 23px;">Pokażę pierwsze 15 danych dla przedstawienia czwartego zbioru.</span>
+```{r}
+head(df4, 15)
+```
+
+```{r, include=FALSE}
+library(ggplot2)
+library(tidyverse)
+library(dplyr)
+library(tidyr)
+library(plotly)
+library(cluster)
+library(igraph)
+library(rvest)
+library(purrr)
+library(grid)
+library(jpeg)
+library(treemap)
+library(rgl)
+library(shiny)
+library(corrplot)
+
+```
+
+```{r}
+df1 <- read.csv("C:\\Users\\ASUS\\Downloads\\world.csv")
+df_1 <- subset(df1, select = -Code)
+Year1 <- df_1$Year 
+PlasticM <- df_1$Annual.plastic.production.between.1950.and.2019
+bg <- readJPEG("C:\\Users\\ASUS\\Downloads\\recycle.jpg")
+```
+
+<a id="section4"></a><span style="font-size: 35px;">Roczna produkcja plastiku</span>
+
+```{r}
+ggplot(df_1, aes(x = Year1, y = PlasticM))+
+    annotation_custom(rasterGrob(bg, width = unit(1, "npc"), height = unit(1, "npc"))) +
+geom_point(color = "black" )+
+  geom_smooth(method = "lm", se = TRUE, linetype = "dashed", color = "red")+
+  ggtitle("Yearly Plastic Production with Trendline and Forecast")+
+  theme(legend.position = "none", plot.title = element_text(hjust = 0.5))+
+  ylab("Plastic production")+
+  xlab("Year")
+```
+
+<span style="color: gray;">Figure</span>
+
+Wykres przedstawia całkowitą ilość plastiku wyprodukowanego w latach 1950-2019.
+
+
+```{r}
+df2 <- read.csv("C:\\Users\\ASUS\\Downloads\\big.csv")
+Year2 <- df2$Year
+abr <- df2$Code
+ent <- df2$Entity
+
+recycled <- df2$Share.of.waste.recycled.from.total.regional.waste
+recycled1 <- recycled[ent == "Americas (excl. USA)"]
+recycled2 <- recycled[ent == "Asia (excl. China and India)"]
+recycled3 <- recycled[ent == "China"]
+recycled4 <- recycled[ent == "Europe"]
+recycled5 <- recycled[ent == "India"]
+recycled6 <- recycled[ent == "Middle East & North Africa"]
+recycled7 <- recycled[ent == "Oceania"]
+recycled8 <- recycled[ent == "Sub-Saharan Africa"]
+recycled9 <- recycled[ent == "United States"]
+recycled10 <- recycled[ent == "World"]
+
+incinerated <- df2$Share.of.waste.incinerated.from.total.regional.waste
+incinerated1 <- incinerated[ent == "Americas (excl. USA)"]
+incinerated2 <- incinerated[ent == "Asia (excl. China and India)"]
+incinerated3 <- incinerated[ent == "China"]
+incinerated4 <- incinerated[ent == "Europe"]
+incinerated5 <- incinerated[ent == "India"]
+incinerated6 <- incinerated[ent == "Middle East & North Africa"]
+incinerated7 <- incinerated[ent == "Oceania"]
+incinerated8 <- incinerated[ent == "Sub-Saharan Africa"]
+incinerated9 <- incinerated[ent == "United States"]
+incinerated10 <- incinerated[ent == "World"]
+
+littered <- df2$Share.of.littered.and.mismanaged.from.total.regional.waste
+littered1 <- littered[ent == "Americas (excl. USA)"]
+littered2 <- littered[ent == "Asia (excl. China and India)"]
+littered3 <- littered[ent == "China"]
+littered4 <- littered[ent == "Europe"]
+littered5 <- littered[ent == "India"]
+littered6 <- littered[ent == "Middle East & North Africa"]
+littered7 <- littered[ent == "Oceania"]
+littered8 <- littered[ent == "Sub-Saharan Africa"]
+littered9 <- littered[ent == "United States"]
+littered10 <- littered[ent == "World"]
+
+landfilled <- df2$Share.of.waste.landfilled.from.total.regional.waste
+landfilled1 <- landfilled[ent == "Americas (excl. USA)"]
+landfilled2 <- landfilled[ent == "Asia (excl. China and India)"]
+landfilled3 <- landfilled[ent == "China"]
+landfilled4 <- landfilled[ent == "Europe"]
+landfilled5 <- landfilled[ent == "India"]
+landfilled6 <- landfilled[ent == "Middle East & North Africa"]
+landfilled7 <- landfilled[ent == "Oceania"]
+landfilled8 <- landfilled[ent == "Sub-Saharan Africa"]
+landfilled9 <- landfilled[ent == "United States"]
+landfilled10 <- landfilled[ent == "World"]
+```
+
+```{r}
+df2 <- df2 %>% 
+  mutate(
+    AmericaSum = ifelse(Entity == "Americas (excl. USA)", recycled1, NA),
+    AsiaSum = ifelse(Entity == "Asia (excl. China and India)", recycled2, NA),
+    ChinaSum = ifelse(Entity == "China", recycled3, NA),
+    EuropeSum = ifelse(Entity == "Europe", recycled4, NA),
+    IndiaSum = ifelse(Entity == "India", recycled5, NA),
+    Middle_East_North_AfricaSum = ifelse(Entity == "Middle East & North Africa", recycled6, NA),
+    OceaniaSum = ifelse(Entity == "Oceania", recycled7, NA),
+    Sub_Saharan_AfricaSum = ifelse(Entity == "Sub-Saharan Africa", recycled8, NA),
+    United_StatesSumSum = ifelse(Entity == "United States", recycled9, NA),
+    WorldSum = ifelse(Entity == "World", recycled10, NA),
+  )
+
+df_2 <- df2 %>%
+  filter(Entity %in% c("Americas (excl. USA)", "Asia (excl. China and India)", "China", "Europe", "India", "Middle East & North Africa", "Oceania", "Sub-Saharan Africa", "United States", "World")) %>%
+  mutate(
+    AmericaSum = ifelse(Entity == "Americas (excl. USA)", recycled, NA),
+    AsiaSum = ifelse(Entity == "Asia (excl. China and India)", recycled, NA),
+    ChinaSum = ifelse(Entity == "China", recycled, NA),
+    EuropeSum = ifelse(Entity == "Europe", recycled, NA),
+    IndiaSum = ifelse(Entity == "India", recycled, NA),
+    Middle_East_North_AfricaSum = ifelse(Entity == "Middle East & North Africa", recycled, NA),
+    OceaniaSum = ifelse(Entity == "Oceania", recycled, NA),
+    Sub_Saharan_AfricaSum = ifelse(Entity == "Sub-Saharan Africa", recycled, NA),
+    United_StatesSum = ifelse(Entity == "United States", recycled, NA),
+    WorldSum = ifelse(Entity == "World", recycled, NA)
+    
+  ) %>%
+  select(AmericaSum, AsiaSum, ChinaSum, EuropeSum, IndiaSum, Middle_East_North_AfricaSum, OceaniaSum, Sub_Saharan_AfricaSum, United_StatesSum, WorldSum)
+
+sums <- colSums(df_2[, c("AmericaSum", "AsiaSum", "ChinaSum", "EuropeSum", "IndiaSum", "Middle_East_North_AfricaSum", "OceaniaSum", "Sub_Saharan_AfricaSum", "United_StatesSum", "WorldSum")], na.rm = TRUE)
+
+#
+sums_df <- data.frame(countries = names(sums), value = sums)
+graf1 <- ggplot(sums_df, aes(x = reorder(countries, -value), y = value)) +
+  geom_bar(stat = "identity", fill = "blue", color = "black") +
+  labs(title = "",
+       x = "",
+       y = "") +
+  theme_minimal() +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1)) +
+  scale_x_discrete(labels = c("America", "Asia", "China", "Europe", "India", "Middle East & NorthAfrica", "Oceania", "Sub-Saharan Africa", "United States", "World"))
+interactive_graph_1 <- ggplotly(graf1)
+```
+
+```{r}
+df2 <- df2 %>% 
+  mutate(
+    AmericaSum_1 = ifelse(Entity == "Americas (excl. USA)", incinerated1, NA),
+    AsiaSum_1 = ifelse(Entity == "Asia (excl. China and India)", incinerated2, NA),
+    ChinaSum_1 = ifelse(Entity == "China", incinerated3, NA),
+    EuropeSum_1 = ifelse(Entity == "Europe", incinerated4, NA),
+    IndiaSum_1 = ifelse(Entity == "India", incinerated5, NA),
+    Middle_East_North_AfricaSum_1 = ifelse(Entity == "Middle East & North Africa", incinerated6, NA),
+    OceaniaSum_1 = ifelse(Entity == "Oceania", incinerated7, NA),
+    Sub_Saharan_AfricaSum_1 = ifelse(Entity == "Sub-Saharan Africa", incinerated8, NA),
+    United_StatesSumSum_1 = ifelse(Entity == "United States", incinerated9, NA),
+    WorldSum_1 = ifelse(Entity == "World", incinerated10, NA),
+  )
+
+df_21 <- df2 %>%
+  filter(Entity %in% c("Americas (excl. USA)", "Asia (excl. China and India)", "China", "Europe", "India", "Middle East & North Africa", "Oceania", "Sub-Saharan Africa", "United States", "World")) %>%
+  mutate(
+    AmericaSum_1 = ifelse(Entity == "Americas (excl. USA)", incinerated, NA),
+    AsiaSum_1 = ifelse(Entity == "Asia (excl. China and India)", incinerated, NA),
+    ChinaSum_1 = ifelse(Entity == "China", incinerated, NA),
+    EuropeSum_1 = ifelse(Entity == "Europe", incinerated, NA),
+    IndiaSum_1 = ifelse(Entity == "India", incinerated, NA),
+    Middle_East_North_AfricaSum_1 = ifelse(Entity == "Middle East & North Africa", incinerated, NA),
+    OceaniaSum_1 = ifelse(Entity == "Oceania", incinerated, NA),
+    Sub_Saharan_AfricaSum_1 = ifelse(Entity == "Sub-Saharan Africa", incinerated, NA),
+    United_StatesSum_1 = ifelse(Entity == "United States", incinerated, NA),
+    WorldSum_1 = ifelse(Entity == "World", incinerated, NA)
+    
+  ) %>%
+  select(AmericaSum_1, AsiaSum_1, ChinaSum_1, EuropeSum_1, IndiaSum_1, Middle_East_North_AfricaSum_1, OceaniaSum_1, Sub_Saharan_AfricaSum_1, United_StatesSum_1, WorldSum_1)
+
+sums_21 <- colSums(df_21[, c("AmericaSum_1", "AsiaSum_1", "ChinaSum_1", "EuropeSum_1", "IndiaSum_1", "Middle_East_North_AfricaSum_1", "OceaniaSum_1", "Sub_Saharan_AfricaSum_1", "United_StatesSum_1", "WorldSum_1")], na.rm = TRUE)
+
+#
+sums_df_21 <- data.frame(countries = names(sums_21), value = sums_21)
+graf_21 <- ggplot(sums_df_21, aes(x = reorder(countries, -value), y = value)) +
+  geom_bar(stat = "identity", fill = "blue", color = "black") +
+  labs(title = "",
+       x = "",
+       y = "") +
+  theme_minimal() +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1)) +
+  scale_x_discrete(labels = c("America", "Asia", "China", "Europe", "India", "Middle East & NorthAfrica", "Oceania", "Sub-Saharan Africa", "United States", "World"))
+interactive_graph_2 <- ggplotly(graf_21)
+```
+
+```{r}
+ df2 <- df2 %>% 
+  mutate(
+    AmericaSum_2 = ifelse(Entity == "Americas (excl. USA)", littered1, NA),
+    AsiaSum_2 = ifelse(Entity == "Asia (excl. China and India)", littered2, NA),
+    ChinaSum_2 = ifelse(Entity == "China", littered3, NA),
+    EuropeSum_2 = ifelse(Entity == "Europe", littered4, NA),
+    IndiaSum_2 = ifelse(Entity == "India", littered5, NA),
+    Middle_East_North_AfricaSum_2 = ifelse(Entity == "Middle East & North Africa", littered6, NA),
+    OceaniaSum_2 = ifelse(Entity == "Oceania", littered7, NA),
+    Sub_Saharan_AfricaSum_1 = ifelse(Entity == "Sub-Saharan Africa", littered8, NA),
+    United_StatesSumSum_2 = ifelse(Entity == "United States", littered9, NA),
+    WorldSum_2 = ifelse(Entity == "World", littered10, NA),
+  )
+
+df_22 <- df2 %>%
+  filter(Entity %in% c("Americas (excl. USA)", "Asia (excl. China and India)", "China", "Europe", "India", "Middle East & North Africa", "Oceania", "Sub-Saharan Africa", "United States", "World")) %>%
+  mutate(
+    AmericaSum_2 = ifelse(Entity == "Americas (excl. USA)", littered, NA),
+    AsiaSum_2= ifelse(Entity == "Asia (excl. China and India)", littered, NA),
+    ChinaSum_2 = ifelse(Entity == "China", littered, NA),
+    EuropeSum_2 = ifelse(Entity == "Europe", littered, NA),
+    IndiaSum_2 = ifelse(Entity == "India", littered, NA),
+    Middle_East_North_AfricaSum_2 = ifelse(Entity == "Middle East & North Africa", littered, NA),
+    OceaniaSum_2 = ifelse(Entity == "Oceania", littered, NA),
+    Sub_Saharan_AfricaSum_2 = ifelse(Entity == "Sub-Saharan Africa", littered, NA),
+    United_StatesSum_2 = ifelse(Entity == "United States", littered, NA),
+    WorldSum_2 = ifelse(Entity == "World", littered, NA)
+    
+  ) %>%
+  select(AmericaSum_2, AsiaSum_2, ChinaSum_2, EuropeSum_2, IndiaSum_2, Middle_East_North_AfricaSum_2, OceaniaSum_2, Sub_Saharan_AfricaSum_2, United_StatesSum_2, WorldSum_2)
+
+sums_22 <- colSums(df_22[, c("AmericaSum_2", "AsiaSum_2", "ChinaSum_2", "EuropeSum_2", "IndiaSum_2", "Middle_East_North_AfricaSum_2", "OceaniaSum_2", "Sub_Saharan_AfricaSum_2", "United_StatesSum_2", "WorldSum_2")], na.rm = TRUE)
+
+#
+sums_df_22 <- data.frame(countries = names(sums_22), value = sums_22)
+graf_22 <- ggplot(sums_df_22, aes(x = reorder(countries, -value), y = value)) +
+  geom_bar(stat = "identity", fill = "blue", color = "black") +
+  labs(title = "",
+       x = "",
+       y = "") +
+  theme_minimal() +
+  theme(axis.text.x = element_text(angle = 45, hjust = 2)) +
+  scale_x_discrete(labels = c("America", "Asia", "China", "Europe", "India", "Middle East & NorthAfrica", "Oceania", "Sub-Saharan Africa", "United States", "World"))
+interactive_graph_3 <- ggplotly(graf_22)
+```
+
+```{r}
+df2 <- df2 %>% 
+  mutate(
+    AmericaSum_3 = ifelse(Entity == "Americas (excl. USA)", landfilled1, NA),
+    AsiaSum_3 = ifelse(Entity == "Asia (excl. China and India)", landfilled, NA),
+    ChinaSum_3 = ifelse(Entity == "China", landfilled3, NA),
+    EuropeSum_3 = ifelse(Entity == "Europe", landfilled4, NA),
+    IndiaSum_3 = ifelse(Entity == "India", landfilled5, NA),
+    Middle_East_North_AfricaSum_3 = ifelse(Entity == "Middle East & North Africa", landfilled6, NA),
+    OceaniaSum_3 = ifelse(Entity == "Oceania", landfilled7, NA),
+    Sub_Saharan_AfricaSum_3 = ifelse(Entity == "Sub-Saharan Africa", landfilled8, NA),
+    United_StatesSumSum_3 = ifelse(Entity == "United States", landfilled9, NA),
+    WorldSum_3 = ifelse(Entity == "World", landfilled10, NA),
+  )
+
+df_23 <- df2 %>%
+  filter(Entity %in% c("Americas (excl. USA)", "Asia (excl. China and India)", "China", "Europe", "India", "Middle East & North Africa", "Oceania", "Sub-Saharan Africa", "United States", "World")) %>%
+  mutate(
+    AmericaSum_3 = ifelse(Entity == "Americas (excl. USA)", landfilled, NA),
+    AsiaSum_3 = ifelse(Entity == "Asia (excl. China and India)", landfilled, NA),
+    ChinaSum_3 = ifelse(Entity == "China", landfilled, NA),
+    EuropeSum_3 = ifelse(Entity == "Europe", landfilled, NA),
+    IndiaSum_3 = ifelse(Entity == "India", landfilled, NA),
+    Middle_East_North_AfricaSum_3 = ifelse(Entity == "Middle East & North Africa", landfilled, NA),
+    OceaniaSum_3 = ifelse(Entity == "Oceania", landfilled, NA),
+    Sub_Saharan_AfricaSum_3 = ifelse(Entity == "Sub-Saharan Africa", landfilled, NA),
+    United_StatesSum_3 = ifelse(Entity == "United States", landfilled, NA),
+    WorldSum_3 = ifelse(Entity == "World", landfilled, NA)
+    
+  ) %>%
+  select(AmericaSum_3, AsiaSum_3, ChinaSum_3, EuropeSum_3, IndiaSum_3, Middle_East_North_AfricaSum_3, OceaniaSum_3, Sub_Saharan_AfricaSum_3, United_StatesSum_3, WorldSum_3)
+
+sums_23 <- colSums(df_23[, c("AmericaSum_3", "AsiaSum_3", "ChinaSum_3", "EuropeSum_3", "IndiaSum_3", "Middle_East_North_AfricaSum_3", "OceaniaSum_3", "Sub_Saharan_AfricaSum_3", "United_StatesSum_3", "WorldSum_3")], na.rm = TRUE)
+
+#
+sums_df_23 <- data.frame(countries = names(sums_23), value = sums_23)
+graf_23 <- ggplot(sums_df_23, aes(x = reorder(countries, -value), y = value)) +
+  geom_bar(stat = "identity", fill = "blue", color = "black") +
+  labs(title = "",
+       x = "",
+       y = "") +
+  theme_minimal() +
+  theme(axis.text.x = element_text(angle = 45, hjust = 2)) +
+  scale_x_discrete(labels = c("America", "Asia", "China", "Europe", "India", "Middle East & NorthAfrica", "Oceania", "Sub-Saharan Africa", "United States", "World"))
+interactive_graph_4 <- ggplotly(graf_23)
+```
+
+<a id="section5"></a><span style="font-size: 35px;">Udział odpadów z swiatu</span> 
+
+```{r}
+library(shiny)
+web <- fluidPage(
+  titlePanel("Interactive Graphs"),
+  sidebarLayout(
+    sidebarPanel(
+      actionButton("btn1", "1: Recovered Resources"),
+      actionButton("btn2", "2: Thermally Treated"),
+      actionButton("btn3", "3: Uncontrolled Disposal"),
+      actionButton("btn4", "4: Final Disposal")
+    ),
+    mainPanel(
+      plotlyOutput("mainPlot")
+    )
+  )
+)
+server <- function(input, output) {
+  current_graph <- reactiveVal(NULL)
+  observeEvent(input$btn1, {
+    current_graph(interactive_graph_1)
+  })
+  observeEvent(input$btn2, {
+    current_graph(interactive_graph_2)
+  })
+  observeEvent(input$btn3, {
+    current_graph(interactive_graph_3)
+  })
+  observeEvent(input$btn4, {
+    current_graph(interactive_graph_4)
+  })
+  output$mainPlot <- renderPlotly({
+    subplot(current_graph())
+  })
+}
+shinyApp(web, server)
+```
+
+```{r}
+df3 <- read.csv("C:\\Users\\ASUS\\Downloads\\other.csv")
+code_1 <- df3$Code
+ent_1 <- df3$Entity
+pol <- df3$Share.of.global.plastics.emitted.to.ocean
+continent_subset <- df3[ent_1 %in% c("Africa", "Asia", "Europe", "North America", "Oceania", "South America", "Australia"), ]
+continents <- continent_subset$Entity
+plastics_values <- continent_subset$Share.of.global.plastics.emitted.to.ocean
+new_data <- data.frame(Continent = continents, Share_of_Plastics = plastics_values)
+df_subset <- df3[!(df3$Entity %in% c("Africa", "Asia", "Europe", "North America", "Oceania", "South America", "Australia")), ]
+continents_1 <- df_subset$Entity
+plastics_values_1 <- df_subset$Share.of.global.plastics.emitted.to.ocean
+new_data_1 <- data.frame(Continent_1 = continents_1, Share_of_Plastics_1 = plastics_values_1)
+countries_to_exclude <- c("Africa", "Asia", "Europe", "North America", "Oceania", "South America", "Australia")
+share_without_countries <- df3$Share.of.global.plastics.emitted.to.ocean[!(df3$Entity %in% countries_to_exclude)]
+```
+
+<a id="section6"></a><span style="font-size: 35px;">Udział odpadów do oceanu(Swiat)</span> 
+
+---
+
+```{r}
+fig <- plot_ly(new_data, labels = ~Continent, values = ~Share_of_Plastics, type = "pie") %>%
+  layout(title = "")
+fig <- fig %>% layout(title = "Plastics emitted into the ocean(World)", margin = list(l = 0, r = 0, b = 0, t = 40))
+fig
+```
+<span style="color: gray;">Figure1</span>
+
+Na podstawie wykresów wyraźnie widać, że Azja jest zdecydowanym liderem w uwalnianiu plastiku do oceanów
+
+<a id="section7"></a><span style="font-size: 35px;">Udział odpadów do oceanu(Kraj)</span> 
+
+---
+
+```{r}
+fig_1 <- plot_ly(new_data_1, labels = ~Continent_1, values = ~Share_of_Plastics_1, type = "pie") %>%
+  layout(title = "Pie")
+fig_1 <- fig_1 %>% layout(title = "Plastics emitted into the ocean(Countries)", margin = list(l = 0, r = 0, b = 0, t = 40))
+fig_1
+```
+<span style="color: gray;">Figure2</span>
+
+Na tym wykresie widać również, że kraje azjatyckie są liderami pod względem emisji plastiku.
+
+
+```{r}
+df4 <- read.csv("C:\\Users\\ASUS\\Downloads\\human.csv")
+ent_2 <- df4$Entity
+pol_2 <- df4$Mismanaged.plastic.waste.per.capita..kg.per.year.
+code_2 <- df4$Code
+df_subset_2 <- df4[ent_2 %in% c("Africa", "Asia", "Europe", "North America", "Oceania"), ]
+```
+
+<a id="section8"></a><span style="font-size: 35px;">Udział odpadów na mieszkańca</span> 
+
+---
+
+```{r}
+test <- data.frame(City = df_subset_2$Entity,
+        Wasted = df_subset_2$Mismanaged.plastic.waste.per.capita..kg.per.year.)
+
+fig <- plot_ly(
+  labels = ~test$City,
+  parents = ~"World",
+  values = ~test$Wasted,
+  type = "treemap",
+  textposition = "middle center",
+  #Размер текста
+  textfont = list(size = 16),
+  #Цвет колонок
+  marker = list(colors = c("red", "blue", "green", "yellow", "purple", "orange")
+                           ))
+#Создание в fig названия и смена расположения названия
+fig <- fig %>% layout(title = "Mismanaged Plastic Waste per Capita", margin = list(l = 0, r = 0, b = 0, t = 40))
+fig
+```
+<span style="color: gray;">Figure3</span>
+
+Ten wykres pokazuje, że Afryka wyrzuca więcej plastiku na mieszkańca. Tak więc większość Afryki to kraje trzeciego świata.
+
+
+<a id="section9"></a><span style="font-size: 35px;">Macierz</span> 
+
+---
+
+```{r}
+waste_littered_landfield <- c(landfilled, littered)
+data_matrix <- matrix(c(incinerated, recycled, waste_littered_landfield), ncol = 3)
+correlation_matrix <- cor(data_matrix)
+rownames(correlation_matrix) <- c("incinerated", "recycled", "landfilled&littered")
+colnames(correlation_matrix) <- c("incinerated", "recycled", "landfilled&littered")
+corrplot(correlation_matrix, method = "color", type = "upper", addCoef.col = "black", tl.col = "black")
+```
+
+<span style="color: gray;">Figure4</span>
+
+
+Matryca pokazuje związek między wszystkimi rodzajami zanieczyszczeń tworzywami sztucznymi.  
+
+```{r}
+plot3d(correlation_matrix, 
+       type = "s", col = "blue", size = 3,
+       xlab = "Waste Incinerated",
+       ylab = "Waste Recycled",
+       zlab = "Waste Littered/Mismanaged",
+       main = "Correlation of Pollution"
+    )
+```
+
+```{r}
+df_subset_3 <- df2$Entity
+
+df5 <- data.frame(
+  recycled_new = recycled,
+  incinerated_new = incinerated,
+  landfilled_new = landfilled,
+  entity_new = df_subset_3,
+  year_new <- df2$Year
+)
+```
+
+<a id="section10"></a><span style="font-size: 35px;">Udział odpadów z swiatu roczne(3d)</span> 
+
+---
+
+```{r}
+fig <- plot_ly(
+  data = df5,
+  x = ~incinerated_new,
+  y = ~landfilled_new,
+  z = ~recycled_new,
+  type = "scatter3d",
+  mode = "markers",
+  color = ~entity_new,
+  marker = list(size = 8),
+  text = ~year_new
+)
+fig <- fig %>% layout(
+  scene = list(
+    xaxis = list(title = "littered/mismanaged"),
+    yaxis = list(title = "Waste incinerated"),
+    zaxis = list(title = "Waste recycled")
+  ),
+  title = "Pollution per year",
+  margin = list(l = 0, r = 0, b = 0, t = 40)
+)
+fig
+```
+<span style="color: gray;">Figure5</span>
+
+Ten wykres pokazuje wzrost zanieczyszczenia plastikiem w latach 2000-2019. Europa, Indie i Chiny są liderami.
+
+
+<a id="section11"></a><span style="font-size: 35px;">Podsumowanie</span> 
+
+---
+
+W ostatnich dziesięcioleciach nastąpił wyraźny wzrost produkcji plastiku i wynikający z tego wzrost emisji. Znaczna część plastiku trafia do światowych wód, powodując poważne problemy dla środowiska i życia morskiego.
+Podsumowując, problem emisji plastiku staje się coraz poważniejszy i wymaga wspólnych wysiłków rządów, firm i obywateli w celu ograniczenia zużycia plastiku, poprawy systemów recyklingu i promowania bardziej zrównoważonych alternatyw.
+
+
+<a id="section12"></a><span style="font-size: 35px;">Źródłó</span>
+
+---
+
+https://www.kaggle.com/datasets/imtkaggleteam/plastic-pollution/data
